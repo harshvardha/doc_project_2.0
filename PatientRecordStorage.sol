@@ -3,6 +3,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 struct Patient {
+    address addr;
     string patientName;
     uint256 age;
     string gender;
@@ -13,10 +14,10 @@ struct Patient {
 }
 
 contract PatientRecordStorage {
-    mapping(uint256 => Patient) public medicalCases;
-    uint256 caseNumber = 1;
+    mapping(address => Patient) public medicalCases;
 
     function addNewPatient(
+        address _address,
         string memory _patientName,
         uint256 _age,
         string memory _gender,
@@ -25,7 +26,9 @@ contract PatientRecordStorage {
         string memory _pathologicalInformation,
         string memory _medicine
     ) public {
+        require(medicalCases[_address].addr != msg.sender);
         Patient memory newPatient = Patient({
+            addr: _address,
             patientName: _patientName,
             age: _age,
             gender: _gender,
@@ -34,18 +37,15 @@ contract PatientRecordStorage {
             pathologicalInformation: _pathologicalInformation,
             medicine: _medicine
         });
-        medicalCases[caseNumber] = newPatient;
+        medicalCases[_address] = newPatient;
     }
 
-    function getPatientMedicalRecord(uint256 caseNo)
+    function getPatientMedicalRecord(address _address)
         public
         view
         returns (Patient memory)
     {
-        require(
-            caseNo <= caseNumber,
-            "There is no patient with this caseNumber"
-        );
-        return medicalCases[caseNo];
+        require(medicalCases[_address].addr == msg.sender);
+        return medicalCases[_address];
     }
 }
