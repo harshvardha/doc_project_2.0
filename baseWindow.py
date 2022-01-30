@@ -1,4 +1,5 @@
 import tkinter
+from tkinter import N, S, W, E
 
 
 class BaseWindow(tkinter.Tk):

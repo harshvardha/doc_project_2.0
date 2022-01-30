@@ -10,6 +10,7 @@ ALERT = "Alert"
 BACK = "Back"
 
 # C
+CASE_NO = "Case No."
 
 # D
 DISEASE = "Disease"

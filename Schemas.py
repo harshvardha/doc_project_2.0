@@ -9,6 +9,7 @@ class Patient(BaseModel):
 class LogInUser(BaseModel):
     address: str
     password: str
+    privateKey: str
 
 
 class PatientData(Patient):

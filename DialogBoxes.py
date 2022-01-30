@@ -1,7 +1,5 @@
 import tkinter
 from tkinter import Toplevel
-
-from sqlalchemy import column
 from baseWindow import BaseWindow
 from strings import ALERT, RESPONSE, WM_DELETE_WINDOW
 

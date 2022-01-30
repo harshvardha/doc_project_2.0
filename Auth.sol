@@ -6,7 +6,7 @@ contract Auth {
     struct userDetails {
         address addr;
         string name;
-        string password;
+        bytes32 password;
         bool isUserLoggedIn;
     }
 
@@ -16,30 +16,33 @@ contract Auth {
     function registerUser(
         address _address,
         string memory _name,
-        string memory _password
+        bytes memory _password
     ) public returns (bool) {
         require(user[_address].addr != msg.sender);
         user[_address].addr = _address;
         user[_address].name = _name;
-        user[_address].password = _password;
+        user[_address].password = keccak256(_password);
         user[_address].isUserLoggedIn = false;
         return true;
     }
 
     // user login function
-    function logInUser(address _address, string memory _password)
+    function logInUser(address _address, bytes memory _password)
         public
         returns (bool)
     {
-        if (
-            keccak256(abi.encodePacked(user[_address].password)) ==
-            keccak256(abi.encodePacked(_password))
-        ) {
+        if (user[_address].password == keccak256(_password)) {
             user[_address].isUserLoggedIn = true;
             return user[_address].isUserLoggedIn;
         } else {
             return false;
         }
+    }
+
+    // user can reset account password through this function
+    function resetPassword(address _address, bytes memory newPassword) public {
+        require(user[_address].addr == msg.sender);
+        user[_address].password = keccak256(newPassword);
     }
 
     // check if the user is already logged in or not

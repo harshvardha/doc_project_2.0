@@ -45,7 +45,6 @@ contract PatientRecordStorage {
         view
         returns (Patient memory)
     {
-        require(medicalCases[_address].addr == msg.sender);
         return medicalCases[_address];
     }
 }

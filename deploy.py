@@ -1,117 +1,125 @@
 from solcx import compile_standard
 import json
 from web3 import Web3
-
-# compiling PatientRecordStorage contract
-with open("./PatientRecordStorage.sol", "r") as file:
-    patientRecordStorage = file.read()
-
-with open("./Auth.sol", "r") as file:
-    authentication = file.read()
-
-compiledSol = compile_standard(
-    {
-        "language": "Solidity",
-        "sources": {"PatientRecordStorage.sol": {"content": patientRecordStorage}, "Auth.sol": {"content": authentication}},
-        "settings": {
-            "outputSelection": {
-                "*": {"*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]}
-            }
-        },
-    },
-    solc_version="0.8.0",
-)
-
-with open("compiledCode.json", "w") as file:
-    json.dump(compiledSol, file)
-
-# getting bytecode to deploy the contract
-contractBytecodePatient = compiledSol["contracts"]["PatientRecordStorage.sol"][
-    "PatientRecordStorage"]["evm"]["bytecode"]["object"]
-contractBytecodeAuth = compiledSol["contracts"]["Auth.sol"]["Auth"]["evm"]["bytecode"]["object"]
-
-# getting abi to deploy the contract
-contractABIPatient = compiledSol["contracts"]["PatientRecordStorage.sol"]["PatientRecordStorage"]["abi"]
-contractABIAuth = compiledSol["contracts"]["Auth.sol"]["Auth"]["abi"]
-
-# for connecting to ganache
-web3Provider = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
-chainId = 1337
-myAddress = "0xfC324C1AEd15cD99eefFeEb796F426b65284174c"
-privateKey = "63b0c2c7577bb787f279ce55bc19fbc3b105ab9d3390c2b8913f900f51431e0e"
+from Schemas import PatientData
 
 
-def _performTransaction(transaction, privateKey):
-    signedTransaction = web3Provider.eth.account.sign_transaction(
-        transaction, privateKey)
-    sendTransaction = web3Provider.eth.send_raw_transaction(
-        signedTransaction.rawTransaction)
-    transactionReciept = web3Provider.eth.wait_for_transaction_receipt(
-        sendTransaction)
-    return transactionReciept
+class Deploy:
+    def __init__(self):
+        self._patientRecordStorage: str
+        self._authentication: str
+        self._compiledContracts: dict
+        self._chainId = 1337
+        self._web3Provider = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
+        self._myAddress = "0x0e80eA8A79bcb58F12bF835c991d71CE31E95d6f"
+        self._privateKey = "0xf2677b22f58272e2740e0388a535829856c304cda71962454ced6ef4d4370455"
+        self._nonce = self._web3Provider.eth.getTransactionCount(
+            self._myAddress)
+        with open("./PatientRecordStorage.sol", "r") as file:
+            self._patientRecordStorage = file.read()
+        with open("./Auth.sol", "r") as file:
+            self._authentication = file.read()
+        self._compileContracts()
+        self._contractBytecodePatient = self._compiledContracts["contracts"]["PatientRecordStorage.sol"][
+            "PatientRecordStorage"]["evm"]["bytecode"]["object"]
+        self._contractBytecodeAuth = self._compiledContracts[
+            "contracts"]["Auth.sol"]["Auth"]["evm"]["bytecode"]["object"]
+        self._contractABIPatient = self._compiledContracts["contracts"][
+            "PatientRecordStorage.sol"]["PatientRecordStorage"]["abi"]
+        self._contractABIAuth = self._compiledContracts["contracts"]["Auth.sol"]["Auth"]["abi"]
+        self._deployContracts()
 
+    def _compileContracts(self):
+        self._compiledContracts = compile_standard(
+            {
+                "language": "Solidity",
+                "sources": {"PatientRecordStorage.sol": {"content": self._patientRecordStorage}, "Auth.sol": {"content": self._authentication}},
+                "settings": {
+                    "outputSelection": {
+                        "*": {"*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]}
+                    }
+                },
+            },
+            solc_version="0.8.0",
+        )
+        with open("compiledCode.json", "w") as file:
+            json.dump(self._compiledContracts, file)
 
-# getting the latest transaction
-nonce = web3Provider.eth.getTransactionCount(myAddress)
+    def _performTransaction(self, transaction, privateKey: str):
+        signedTransaction = self._web3Provider.eth.account.sign_transaction(
+            transaction, privateKey)
+        sendTransaction = self._web3Provider.eth.send_raw_transaction(
+            signedTransaction.rawTransaction)
+        transactionReciept = self._web3Provider.eth.wait_for_transaction_receipt(
+            sendTransaction)
+        return transactionReciept
 
-# deploying the contracts
-patientRecordStorage = web3Provider.eth.contract(
-    abi=contractABIPatient, bytecode=contractBytecodePatient)
-storageTransaction = patientRecordStorage.constructor().buildTransaction(
-    {"chainId": chainId, "from": myAddress, "nonce": nonce})
-storageTransactionReciept = _performTransaction(storageTransaction, privateKey)
-print("PatientRecordStorage Contract Deployed: ", storageTransactionReciept)
-nonce += 1
+    def _deployContracts(self):
+        # deploying PatientRecordStorage.sol contract
+        self._patientRecordStorage = self._web3Provider.eth.contract(
+            abi=self._contractABIPatient, bytecode=self._contractBytecodePatient
+        )
+        transaction = self._patientRecordStorage.constructor().buildTransaction(
+            {"chainId": self._chainId, "from": self._myAddress, "nonce": self._nonce}
+        )
+        transactionReciept = self._performTransaction(
+            transaction, self._privateKey)
+        print("PatientRecordStorage.sol Contract Deployed : ", transactionReciept)
+        self._updateNonce()
+        self._patientRecordStorage = self._web3Provider.eth.contract(
+            address=transactionReciept.contractAddress, abi=self._contractABIPatient
+        )
+        print(self._patientRecordStorage.address)
 
-authentication = web3Provider.eth.contract(
-    abi=contractABIAuth, bytecode=contractBytecodeAuth)
-authenticationTransaction = authentication.constructor().buildTransaction(
-    {"chainId": chainId, "from": myAddress, "nonce": nonce}
-)
-authenticationTransactionReciept = _performTransaction(
-    authenticationTransaction, privateKey)
-print("Authentication Contract Deployed: ", authenticationTransactionReciept)
+        # deploying Auth.sol contract
+        self._authentication = self._web3Provider.eth.contract(
+            abi=self._contractABIAuth, bytecode=self._contractBytecodeAuth
+        )
+        transaction = self._authentication.constructor().buildTransaction(
+            {"chainId": self._chainId, "from": self._myAddress, "nonce": self._nonce}
+        )
+        transactionReciept = self._performTransaction(
+            transaction, self._privateKey)
+        print("Auth.sol Contract Deployed : ", transactionReciept)
+        self._updateNonce()
+        self._authentication = self._web3Provider.eth.contract(
+            address=transactionReciept.contractAddress, abi=self._contractABIAuth
+        )
+        print(self._authentication.address)
 
-# now interacting with contract
-patientRecordStorage = web3Provider.eth.contract(
-    address=storageTransactionReciept.contractAddress, abi=contractABIPatient)
-authentication = web3Provider.eth.contract(
-    address=authenticationTransactionReciept.contractAddress, abi=contractABIAuth)
+    def _updateNonce(self):
+        self._nonce += 1
 
+    def _getNonce(self, address: str):
+        return self._web3Provider.eth.getTransactionCount(address)
 
-def registerUser(address: str, name: str, password: str, privateKey: str):
-    global nonce
-    nonce += 1
-    register = authentication.functions.registerUser(address, name, password).buildTransaction(
-        {"chainId": chainId, "from": address, "nonce": nonce})
-    print("registered : ", _performTransaction(register, privateKey))
+    def registerUser(self, address: str, name: str, password: str, privateKey: str):
+        register = self._authentication.functions.registerUser(address, name, bytes(password)).buildTransaction(
+            {"chainId": self._chainId, "from": address, "nonce": self._getNonce(address)})
+        return self._performTransaction(register, privateKey)["status"]
 
+    def logInUser(self, address: str, password: str, privateKey: str):
+        logIn = self._authentication.functions.logInUser(address, bytes(password)).buildTransaction(
+            {"chainId": self._chainId, "from": address, "nonce": self._getNonce(address)})
+        return self._performTransaction(logIn, privateKey)["status"]
 
-def logInUser(address: str, password: str, privateKey: str):
-    global nonce
-    nonce += 1
-    logIn = authentication.functions.logInUser(address, password).buildTransaction(
-        {"chainId": chainId, "from": address, "nonce": nonce})
-    print("log in successful : ", _performTransaction(logIn, privateKey))
+    def resetPassword(self, address: str, password: str, privateKey: str):
+        reset = self._authentication.functions.resetPassword(address, bytes(password)).buildTransaction(
+            {"chainId": self._chainId, "from": address,
+                "nonce": self._getNonce(address)}
+        )
+        return self._performTransaction(reset, privateKey)["status"]
 
+    def addNewPatient(self, patientObject: PatientData, privateKey: str):
+        storePatientData = self._patientRecordStorage.functions.addNewPatient(
+            patientObject.address, patientObject.name, patientObject.age, patientObject.gender, patientObject.symptoms,
+            patientObject.disease, patientObject.pathologicalInformation, patientObject.medicine
+        ).buildTransaction(
+            {"chainId": self._chainId, "from": patientObject.address, "nonce": self._getNonce(patientObject.address)})
+        return self._performTransaction(storePatientData, privateKey)["status"]
 
-def checkUserLoggedInOrNot(address: str):
-    print("Status: ", authentication.functions.chechUserLoggedInOrNot(address).call())
+    def checkUserLoggedInOrNot(self, address: str):
+        return self._authentication.functions.chechUserLoggedInOrNot(address).call()
 
-
-def addNewPatient(patientObject, privateKey: str):
-    global nonce
-    nonce += 1
-    storePatientData = patientRecordStorage.functions.addNewPatient(
-        patientObject.name, patientObject.age, patientObject.gender, patientObject.symptoms,
-        patientObject.disease, patientObject.pathalogicalInformation, patientObject.medicine
-    ).buildTransaction(
-        {"chainId": chainId, "from": myAddress, "nonce": nonce})
-    print("updated: ", _performTransaction(storePatientData, privateKey))
-
-
-def getPatientMedicalRecord(address: str):
-    print(patientRecordStorage.functions.getPatientMedicalRecord(address).call())
-
-# addNewPatient()
-# getPatientMedicalRecord(1)
+    def getPatientMedicalRecord(self, address: str):
+        return self._patientRecordStorage.functions.getPatientMedicalRecord(address).call()
