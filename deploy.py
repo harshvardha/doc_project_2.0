@@ -6,13 +6,10 @@ from Schemas import PatientData
 
 class Deploy:
     def __init__(self):
-        self._patientRecordStorage: str
-        self._authentication: str
-        self._compiledContracts: dict
         self._chainId = 1337
         self._web3Provider = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
-        self._myAddress = "0x0e80eA8A79bcb58F12bF835c991d71CE31E95d6f"
-        self._privateKey = "0xf2677b22f58272e2740e0388a535829856c304cda71962454ced6ef4d4370455"
+        self._myAddress = "0x0B2F752Dc5f7F38793778B73420af1420F7022d6"
+        self._privateKey = "0x1a36e5a0ddec84ea9a6042d1125e50d27a2ef249050d0b7107031d232692a473"
         self._nonce = self._web3Provider.eth.getTransactionCount(
             self._myAddress)
         with open("./PatientRecordStorage.sol", "r") as file:
@@ -94,17 +91,17 @@ class Deploy:
         return self._web3Provider.eth.getTransactionCount(address)
 
     def registerUser(self, address: str, name: str, password: str, privateKey: str):
-        register = self._authentication.functions.registerUser(address, name, bytes(password)).buildTransaction(
+        register = self._authentication.functions.registerUser(address, name, bytes(password.encode())).buildTransaction(
             {"chainId": self._chainId, "from": address, "nonce": self._getNonce(address)})
         return self._performTransaction(register, privateKey)["status"]
 
     def logInUser(self, address: str, password: str, privateKey: str):
-        logIn = self._authentication.functions.logInUser(address, bytes(password)).buildTransaction(
+        logIn = self._authentication.functions.logInUser(address, bytes(password.encode())).buildTransaction(
             {"chainId": self._chainId, "from": address, "nonce": self._getNonce(address)})
-        return self._performTransaction(logIn, privateKey)["status"]
+        return self._performTransaction(logIn, privateKey)
 
     def resetPassword(self, address: str, password: str, privateKey: str):
-        reset = self._authentication.functions.resetPassword(address, bytes(password)).buildTransaction(
+        reset = self._authentication.functions.resetPassword(address, bytes(password.encode())).buildTransaction(
             {"chainId": self._chainId, "from": address,
                 "nonce": self._getNonce(address)}
         )
@@ -119,7 +116,7 @@ class Deploy:
         return self._performTransaction(storePatientData, privateKey)["status"]
 
     def checkUserLoggedInOrNot(self, address: str):
-        return self._authentication.functions.chechUserLoggedInOrNot(address).call()
+        return self._authentication.functions.checkUserLoggedInOrNot(address).call()
 
     def getPatientMedicalRecord(self, address: str):
         return self._patientRecordStorage.functions.getPatientMedicalRecord(address).call()

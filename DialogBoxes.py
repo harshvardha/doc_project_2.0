@@ -10,8 +10,9 @@ class SearchDialog(Toplevel):
         self.parent = parent
         self.width = width
         self.height = height
-        self.address: str
+        self.address = ""
         self.addressEntryBox: tkinter.Entry
+        self.searchButton: tkinter.Button
         self.geometry("%dx%d+%d+%d" % (width, height,
                       self.winfo_rootx()+parent.screenWidth/2.6, self.winfo_rooty()+parent.screenWidth/5))
         self.title(dialogName)
@@ -68,8 +69,7 @@ class SearchDialog(Toplevel):
             "font": textProperties["font"],
             "activebackground": "#6C7B95",
             "activeforeground": "#FFFFFF",
-            "fg": "#FFFFFF",
-            "command": self._search
+            "fg": "#FFFFFF"
         }
         addressLabel = tkinter.Label(
             master=frames["middle"], text="Address : ", **textProperties)
@@ -78,19 +78,18 @@ class SearchDialog(Toplevel):
             master=frames["middle"], **entryBoxProperties)
         self.addressEntryBox.grid(row=0, column=1, sticky=(
             tkinter.W, tkinter.E, tkinter.N, tkinter.S), padx=10, pady=10)
-        searchButton = tkinter.Button(**searchButtonProperties)
-        searchButton.grid(row=1, column=0, columnspan=2,
-                          sticky=(tkinter.S, tkinter.N))
+        self.searchButton = tkinter.Button(**searchButtonProperties)
+        self.searchButton.grid(row=1, column=0, columnspan=2,
+                               sticky=(tkinter.S, tkinter.N))
 
     def _cancel(self, event=None):
         self.parent.focus_set()
         self.destroy()
 
-    def _search(self, event=None):
+    def _search(self):
         self.address = self.addressEntryBox.get()
         self.withdraw()
         self.update_idletasks()
-        self.cancel()
 
     def getAddress(self):
         return self.address

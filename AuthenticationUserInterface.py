@@ -165,7 +165,7 @@ class LoginForm(BaseWindow):
 class RegisterForm(BaseWindow):
     def __init__(self):
         super(RegisterForm, self).__init__()
-        self.entryBoxes: dict
+        self._entryBoxes: dict
         self._basicFormStructure = BasicFormStructure(self, "REGISTER")
         self._credentialsWidgetsFrame = self._basicFormStructure.credentialsWidgetsFrame
         self._buttonsContainerFrame = self._basicFormStructure.buttonsContainerFrame
@@ -195,7 +195,7 @@ class RegisterForm(BaseWindow):
             "highlightthickness": 2,
             "highlightcolor": "#b5bdc9"
         }
-        self.entryBoxes = {
+        self._entryBoxes = {
             "address": tkinter.Entry(**entryBoxProperties),
             "name": tkinter.Entry(**entryBoxProperties),
             "password": tkinter.Entry(**entryBoxProperties, show="*"),
@@ -213,14 +213,14 @@ class RegisterForm(BaseWindow):
             "fg": "#FFFFFF"
         }
         self.buttons = {
-            "Register": tkinter.Button(**buttonProperties)
+            "register": tkinter.Button(**buttonProperties)
         }
         for i, label in enumerate(labels.values()):
             label.grid(row=i, column=0, sticky=(E))
 
         for i, entryBox in enumerate(self._entryBoxes.values()):
             entryBox.grid(row=i, column=1, sticky=(E, W), padx=20, pady=20)
-        self.buttons["Register"].grid(row=0, column=0)
+        self.buttons["register"].grid(row=0, column=0)
         self._entryBoxes["address"].focus_set()
 
     def displayErrorMessage(self):
@@ -233,13 +233,13 @@ class RegisterForm(BaseWindow):
         return self.buttons
 
     def getEntryBoxes(self):
-        return self.entryBoxes
+        return self._entryBoxes
 
 
 class ForgetPassword(BaseWindow):
     def __init__(self):
         super(ForgetPassword, self).__init__()
-        self.entryBoxes: dict
+        self._entryBoxes: dict
         self._basicFormStructure = BasicFormStructure(self, "RESET PASSWORD")
         self._credentialsWidgetsFrame = self._basicFormStructure.credentialsWidgetsFrame
         self._buttonsContainerFrame = self._basicFormStructure.buttonsContainerFrame
@@ -268,22 +268,21 @@ class ForgetPassword(BaseWindow):
             "highlightthickness": 2,
             "highlightcolor": "#b5bdc9"
         }
-        self.entryBoxes = {
+        self._entryBoxes = {
             "address": tkinter.Entry(**entryBoxProperties),
             "newPassword": tkinter.Entry(**entryBoxProperties),
             "privateKey": tkinter.Entry(**entryBoxProperties)
         }
         buttonProperties = {
             "master": self._buttonsContainerFrame,
-            "text": "Register",
+            "text": "Reset",
             "width": 22,
             "bg": "#6C7B95",
             "bd": 0,
             "font": ("Poppins-Medium", 16, "bold"),
             "activebackground": "#FFFFFF",
             "activeforeground": "#6C7B95",
-            "fg": "#FFFFFF",
-            "command": self._resetPassword
+            "fg": "#FFFFFF"
         }
         self.buttons = {
             "reset": tkinter.Button(**buttonProperties)
@@ -308,7 +307,7 @@ class ForgetPassword(BaseWindow):
         return self.buttons
 
     def getEntryBoxes(self):
-        return self.entryBoxes
+        return self._entryBoxes
 
 
 if __name__ == "__main__":

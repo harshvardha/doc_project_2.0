@@ -1,7 +1,9 @@
+from Schemas import PatientData
 import strings
 import images
 import tkinter
 from baseWindow import BaseWindow
+from tkinter import N, S, W, E
 
 
 class _Images:
@@ -45,8 +47,7 @@ class MedicalRecord(BaseWindow):
             "basicInformation": tkinter.LabelFrame(master=self, **framesProperties["infoLabelFrame"], text="Patient Basic Information"),
             "medicalInformation": tkinter.LabelFrame(master=self, **framesProperties["infoLabelFrame"], text="Patient Medical Information")
         }
-        frames["sideFrame"].grid(row=0, column=0, rowspan=2, sticky=(
-            tkinter.N, tkinter.S))
+        frames["sideFrame"].grid(row=0, column=0, rowspan=2, sticky=(N, S))
         frames["sideFrame"].grid_columnconfigure(0, weight=1)
         for i in range(2):
             frames["basicInformation"].columnconfigure(i, weight=1)
@@ -73,14 +74,15 @@ class MedicalRecord(BaseWindow):
         # Now creating the label that will contain medical record
         labelProperties = {
             "headers": {
-                "bg": "#FFFFFF",
+                "bg": "#6C7B95",
                 "fg": "#000000",
                 "font": ("Poppins-Medium", 16, "bold")
             },
             "information": {
                 "bg": "#FFFFFF",
                 "fg": "#000000",
-                "font": ("Poppins-Medium", 16, "bold")
+                "font": ("Poppins-Medium", 16, "bold"),
+                "wraplength": 530
             }
         }
         frames["basicInfoContainers"] = {
@@ -155,8 +157,14 @@ class MedicalRecord(BaseWindow):
             button.grid(row=i, column=0)
 
         # Now gridding the label frames
-        frames["basicInformation"].grid(row=0, column=1)
-        frames["medicalInformation"].grid(row=1, column=1)
+        frames["basicInformation"].grid(
+            row=0, column=1, sticky=(W, E, N, S), padx=20, pady=20)
+        frames["basicInformation"].columnconfigure(0, weight=1)
+        frames["basicInformation"].columnconfigure(1, weight=1)
+        frames["medicalInformation"].grid(
+            row=1, column=1, sticky=(W, E, N, S), padx=20, pady=20)
+        frames["medicalInformation"].columnconfigure(0, weight=1)
+        frames["medicalInformation"].columnconfigure(1, weight=1)
 
         # Now gridding the information label containers
         self._gridInfoContainers(frames["basicInfoContainers"].values())
@@ -170,12 +178,9 @@ class MedicalRecord(BaseWindow):
 
         # Now gridding the information labels
         for labelKey in labels.keys():
-            print(labelKey)
             for i, label in enumerate(labels[labelKey].values()):
-                label[0].grid(row=0, column=0, sticky=(
-                    tkinter.N, tkinter.S, tkinter.W, tkinter.E))
-                label[1].grid(row=1, column=0, sticky=(
-                    tkinter.N, tkinter.S, tkinter.W, tkinter.E))
+                label[0].grid(row=0, column=0, sticky=(N, S, W, E))
+                label[1].grid(row=1, column=0, sticky=(N, S, W, E))
 
     def _gridInfoContainers(self, frames):
         row = -1
@@ -186,18 +191,21 @@ class MedicalRecord(BaseWindow):
                 column = 0
             else:
                 column += 1
-        frame.grid(row=row, column=column, sticky=(tkinter.W, tkinter.E))
+            frame.grid(row=row, column=column, sticky=(W, E))
+
+    def getButtons(self):
+        return self.buttons
 
 
-p = {
-    "address": 1,
-    "name": "Harshvardhan Singh Chauhan",
-    "age": 22,
-    "gender": "Male",
-    "symptoms": "Naak beh rahi hai",
-    "pathologicalInformation": "Not Available",
-    "disease": "Common cold",
-    "medicine": "paracetamol"
-}
+# p = PatientData(
+#     address="0xc3b19E1ee86d0387A7C0e82b6e3955629Db76D04",
+#     name="Harshvardhan Singh Chauhan",
+#     age=22,
+#     gender="Male",
+#     symptoms="high body temperature",
+#     pathologicalInformation="Not Available",
+#     disease="Fever",
+#     medicine="paracetamol"
+# )
 
 # MedicalRecord(p)

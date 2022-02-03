@@ -27,7 +27,6 @@ class AddNewPatient(BaseWindow):
         for i in range(3):
             self.rowconfigure(i, weight=1)
         self._createUI()
-        self.mainloop()
 
     def _createUI(self):
         # This function will create the UI for the add new patient window
@@ -229,18 +228,21 @@ class AddNewPatient(BaseWindow):
     def displaySuccessMessage(self):
         ResponseMessageDialog(self, 350, 150, "Saved Successfully")
 
-    def displayErrorMessage(self):
-        AlertMessageDialog(self, 350, 150, "Error Saving Data")
+    def displayErrorMessage(self, message: str):
+        AlertMessageDialog(self, 350, 150, message)
 
     def displaySearchDialog(self) -> str:
         searchDialog = SearchDialog(self, 350, 150, "Search Patient")
-        return searchDialog.getAddress()
+        return searchDialog
 
     def getButtons(self):
         return self._buttons
 
     def getInformationWidgets(self):
         return self.widgets
+
+    def getPatientGender(self):
+        return self.selectedGender
 
 
 # AddNewPatient()

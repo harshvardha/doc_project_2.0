@@ -1,3 +1,4 @@
+from threading import Thread
 from DialogBoxes import AlertMessageDialog, SearchDialog
 import images
 import strings
@@ -22,9 +23,8 @@ class OptionsWindow(BaseWindow):
         super().__init__()
         self.rowconfigure(1, weight=1)
         self._imagesObj = _Images()
-        self.buttons = {}
+        self.buttons: dict
         self.createUI()
-        self.mainloop()
 
     def createUI(self):
         # Creating design frames who will be placed in 1st row and 3 row just for the look and feel
@@ -70,13 +70,10 @@ class OptionsWindow(BaseWindow):
 
     def displaySearchDialog(self):
         searchDialog = SearchDialog(self, 350, 150, "Search Patient")
-        return searchDialog.getAddress()
+        return searchDialog
 
     def displayErrorMessage(self):
         AlertMessageDialog(self, 350, 150, "Patient Not Found")
 
     def getButtons(self):
         return self.buttons
-
-
-# OptionsWindow()

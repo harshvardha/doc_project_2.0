@@ -28,7 +28,8 @@ class Model:
 
     def getPatientData(self, address: str):
         data = self._deploy.getPatientMedicalRecord(address)
-        if(data):
+        if(data[2] > 0):
+            print(data)
             return PatientData(
                 address=data[0],
                 name=data[1],
